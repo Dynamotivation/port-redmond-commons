@@ -13,6 +13,7 @@ public sealed class WindowAppearanceController : IDisposable
 {
     private readonly Window _window;
     private readonly Border? _surface;
+    private readonly bool _manageDecorations;
     private MacOSMaterialBackdrop? _materialBackdrop;
     private MacOSWindowControls? _macOSWindowControls;
     private WindowAppearanceOptions _options;
@@ -23,14 +24,19 @@ public sealed class WindowAppearanceController : IDisposable
     private WindowAppearanceController(
         Window window,
         Border? surface,
-        WindowAppearanceOptions options)
+        WindowAppearanceOptions options,
+        bool manageDecorations)
     {
         _window = window;
         _surface = surface;
         _options = options;
+        _manageDecorations = manageDecorations;
         _window.Opened += OnOpened;
         _window.Closed += OnClosed;
-        ApplyWindowDecorations(options);
+        if (_manageDecorations)
+        {
+            ApplyWindowDecorations(options);
+        }
         ApplySurface(options);
     }
 
@@ -48,12 +54,22 @@ public sealed class WindowAppearanceController : IDisposable
     public static WindowAppearanceController Attach(
         Window window,
         Border? surface = null,
-        WindowAppearanceOptions? options = null) =>
-        new(window, surface, options ?? new WindowAppearanceOptions());
+        WindowAppearanceOptions? options = null,
+        bool manageDecorations = true) =>
+        new(window, surface, options ?? new WindowAppearanceOptions(), manageDecorations);
 
     public void Apply(WindowAppearanceOptions options)
     {
         ObjectDisposedException.ThrowIf(_isDisposed, this);
+
+        if (!_manageDecorations)
+        {
+            _options = options;
+            ApplySurface(options);
+            RefreshBackdrop(options);
+            PresentationChanged?.Invoke(this, EventArgs.Empty);
+            return;
+        }
 
         var previous = _options;
         var wasUsingNativeTitleBar = UsesFullNativeTitleBar(previous);
@@ -117,7 +133,10 @@ public sealed class WindowAppearanceController : IDisposable
     {
         _isOpened = true;
         RefreshBackdrop(_options);
-        RefreshWindowPresentation(_options);
+        if (_manageDecorations)
+        {
+            RefreshWindowPresentation(_options);
+        }
         PresentationChanged?.Invoke(this, EventArgs.Empty);
     }
 
