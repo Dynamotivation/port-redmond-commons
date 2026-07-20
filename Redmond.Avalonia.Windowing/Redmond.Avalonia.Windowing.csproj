@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>Redmond.Avalonia.Windowing</AssemblyName>
+    <RootNamespace>Redmond.Avalonia.Windowing</RootNamespace>
+    <Description>Shared Redmond Project window materials, decorations, and platform integration for Avalonia.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="12.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Redmond.Avalonia.Controls/Redmond.Avalonia.Controls.csproj" />
+  </ItemGroup>
+</Project>

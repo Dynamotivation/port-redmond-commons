@@ -1,0 +1,223 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="using:Redmond.Avalonia.Controls">
+
+  <!-- Shared by sibling Redmond applications through project references. -->
+
+  <Styles.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Dark">
+          <SolidColorBrush x:Key="RedmondSettingsCardBrush" Color="#80303139" />
+          <SolidColorBrush x:Key="RedmondSettingsHeaderHoverBrush" Color="#80383941" />
+          <SolidColorBrush x:Key="RedmondSettingsCardBorderBrush" Color="#80505158" />
+          <SolidColorBrush x:Key="RedmondSettingsPrimaryForegroundBrush" Color="#F5F5F5" />
+          <SolidColorBrush x:Key="RedmondSettingsSecondaryForegroundBrush" Color="#C7C7C7" />
+          <BoxShadows x:Key="RedmondSettingsCardShadow">inset 0 0 1 0 #20505158, 0 0 1 0 #20505158</BoxShadows>
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Light">
+          <SolidColorBrush x:Key="RedmondSettingsCardBrush" Color="#80FBFBFB" />
+          <SolidColorBrush x:Key="RedmondSettingsHeaderHoverBrush" Color="#80F6F6F6" />
+          <SolidColorBrush x:Key="RedmondSettingsCardBorderBrush" Color="#80CCCCCC" />
+          <SolidColorBrush x:Key="RedmondSettingsPrimaryForegroundBrush" Color="#1A1A1A" />
+          <SolidColorBrush x:Key="RedmondSettingsSecondaryForegroundBrush" Color="#5E5E5E" />
+          <BoxShadows x:Key="RedmondSettingsCardShadow">inset 0 0 1 0 #30CCCCCC, 0 0 1 0 #30CCCCCC</BoxShadows>
+        </ResourceDictionary>
+      </ResourceDictionary.ThemeDictionaries>
+    </ResourceDictionary>
+  </Styles.Resources>
+
+  <Style Selector="controls|AnimatedSettingsExpander">
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="Padding" Value="68,14,16,14" />
+    <Setter Property="CornerRadius" Value="6" />
+    <Setter Property="Background" Value="{DynamicResource RedmondSettingsCardBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource RedmondSettingsCardBorderBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                BoxShadow="{DynamicResource RedmondSettingsCardShadow}"
+                CornerRadius="{TemplateBinding CornerRadius}"
+                ClipToBounds="True">
+          <DockPanel MinWidth="{TemplateBinding MinWidth}"
+                     MaxWidth="{TemplateBinding MaxWidth}">
+            <ToggleButton Name="ExpanderHeader"
+                          DockPanel.Dock="Top"
+                          Height="{TemplateBinding HeaderHeight}"
+                          HorizontalAlignment="Stretch"
+                          HorizontalContentAlignment="Stretch"
+                          VerticalContentAlignment="Center"
+                          CornerRadius="{TemplateBinding CornerRadius}"
+                          IsEnabled="{TemplateBinding IsEnabled}"
+                          IsChecked="{TemplateBinding IsExpanded}">
+              <Grid Height="{TemplateBinding HeaderHeight}"
+                    HorizontalAlignment="Stretch">
+                <Grid Margin="16,0"
+                      HorizontalAlignment="Stretch"
+                      VerticalAlignment="Center"
+                      ColumnDefinitions="36,*,32"
+                      RowDefinitions="Auto,Auto">
+                  <ContentPresenter Grid.RowSpan="2"
+                                    Width="24"
+                                    Height="24"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Content="{TemplateBinding Icon}" />
+                  <ContentPresenter Grid.Column="1"
+                                    Margin="16,0,0,0"
+                                    VerticalAlignment="Bottom"
+                                    FontSize="15"
+                                    FontWeight="Normal"
+                                    Content="{TemplateBinding Header}" />
+                  <ContentPresenter Grid.Row="1"
+                                    Grid.Column="1"
+                                    Margin="16,2,0,0"
+                                    VerticalAlignment="Top"
+                                    FontSize="13"
+                                    Foreground="{DynamicResource RedmondSettingsSecondaryForegroundBrush}"
+                                    Content="{TemplateBinding Description}" />
+                  <Path Grid.Column="2"
+                        Grid.RowSpan="2"
+                        Classes="redmondSettingsChevron"
+                        Classes.expanded="{Binding IsExpanded, RelativeSource={RelativeSource AncestorType=Expander}}"
+                        Stroke="{DynamicResource RedmondSettingsPrimaryForegroundBrush}"
+                        StrokeThickness="1.5"
+                        Data="M 1,1 L 6,6 L 11,1" />
+                </Grid>
+                <Border Height="1"
+                        Margin="-8,0"
+                        VerticalAlignment="Bottom"
+                        ZIndex="3"
+                        Background="{DynamicResource RedmondSettingsCardBorderBrush}"
+                        IsVisible="{Binding IsExpanded, RelativeSource={RelativeSource AncestorType=Expander}}" />
+              </Grid>
+            </ToggleButton>
+            <Border Name="ExpanderContent"
+                    Background="{TemplateBinding Background}"
+                    MinHeight="0"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch"
+                    Padding="{TemplateBinding Padding}"
+                    ClipToBounds="True">
+              <ContentPresenter Name="PART_ContentPresenter"
+                                Content="{TemplateBinding Content}"
+                                ContentTemplate="{TemplateBinding ContentTemplate}"
+                                Foreground="{TemplateBinding Foreground}"
+                                HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+            </Border>
+          </DockPanel>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+
+  <Style Selector="controls|SettingsCard">
+    <Setter Property="Height" Value="72" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment" Value="Right" />
+    <Setter Property="CornerRadius" Value="6" />
+    <Setter Property="Background" Value="{DynamicResource RedmondSettingsCardBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource RedmondSettingsCardBorderBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                BoxShadow="{DynamicResource RedmondSettingsCardShadow}"
+                CornerRadius="{TemplateBinding CornerRadius}">
+          <Grid Margin="24,0" ColumnDefinitions="36,*,Auto">
+            <ContentPresenter Width="24"
+                              Height="24"
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Center"
+                              Content="{TemplateBinding Icon}" />
+            <StackPanel Grid.Column="1"
+                        Margin="16,0,16,0"
+                        VerticalAlignment="Center"
+                        Spacing="2">
+              <ContentPresenter FontSize="15"
+                                FontWeight="Normal"
+                                Content="{TemplateBinding Header}" />
+              <ContentPresenter FontSize="13"
+                                Foreground="{DynamicResource RedmondSettingsSecondaryForegroundBrush}"
+                                Content="{TemplateBinding Description}" />
+            </StackPanel>
+            <ContentPresenter Grid.Column="2"
+                              VerticalAlignment="Center"
+                              HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                              Content="{TemplateBinding Content}"
+                              ContentTemplate="{TemplateBinding ContentTemplate}" />
+          </Grid>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+
+  <Style Selector="controls|AnimatedSettingsExpander /template/ ToggleButton#ExpanderHeader">
+    <Setter Property="Panel.ZIndex" Value="2" />
+    <Setter Property="Background" Value="{DynamicResource RedmondSettingsCardBrush}" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <!-- Calculator inherits Avalonia 12.1's ButtonPadding (8,5,8,6) in
+         addition to its explicit 16px header-grid margin. Preserve that
+         resolved geometry when owning the presenter. -->
+    <Setter Property="Padding" Value="8,5,8,6" />
+    <!-- Own the presenter so Fluent's content-sized ToggleButton alignment
+         cannot pull the header grid and chevron toward the center. -->
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border Name="ToggleButtonBackground"
+                Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                CornerRadius="{TemplateBinding CornerRadius}">
+          <ContentPresenter Content="{TemplateBinding Content}"
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                            Padding="{TemplateBinding Padding}"
+                            HorizontalContentAlignment="Stretch"
+                            VerticalContentAlignment="Center" />
+        </Border>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+  <Style Selector="controls|AnimatedSettingsExpander /template/ ToggleButton#ExpanderHeader /template/ Border#ToggleButtonBackground">
+    <Setter Property="Background" Value="{DynamicResource RedmondSettingsCardBrush}" />
+  </Style>
+  <Style Selector="controls|AnimatedSettingsExpander /template/ ToggleButton#ExpanderHeader:pointerover /template/ Border#ToggleButtonBackground">
+    <Setter Property="Background" Value="{DynamicResource RedmondSettingsHeaderHoverBrush}" />
+  </Style>
+  <Style Selector="controls|AnimatedSettingsExpander /template/ ToggleButton#ExpanderHeader:pressed /template/ Border#ToggleButtonBackground">
+    <Setter Property="Background" Value="{DynamicResource RedmondSettingsCardBrush}" />
+  </Style>
+  <Style Selector="controls|AnimatedSettingsExpander /template/ ToggleButton#ExpanderHeader:disabled /template/ Border#ToggleButtonBackground">
+    <Setter Property="Background" Value="{DynamicResource RedmondSettingsCardBrush}" />
+  </Style>
+
+  <Style Selector="Path.redmondSettingsChevron">
+    <Setter Property="Width" Value="12" />
+    <Setter Property="Height" Value="7" />
+    <Setter Property="HorizontalAlignment" Value="Center" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="RenderTransformOrigin" Value="50%,50%" />
+    <Setter Property="RenderTransform" Value="rotate(0deg)" />
+    <Setter Property="Transitions">
+      <Transitions>
+        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.16">
+          <TransformOperationsTransition.Easing>
+            <CubicEaseInOut />
+          </TransformOperationsTransition.Easing>
+        </TransformOperationsTransition>
+      </Transitions>
+    </Setter>
+  </Style>
+  <Style Selector="Path.redmondSettingsChevron.expanded">
+    <Setter Property="RenderTransform" Value="rotate(180deg)" />
+  </Style>
+</Styles>

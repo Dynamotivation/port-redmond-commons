@@ -1,0 +1,59 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Redmond.Avalonia.Windowing.WindowCaptionButtons"
+             Height="42">
+  <UserControl.Styles>
+    <Style Selector="Button.captionButton">
+      <Setter Property="Width" Value="60" />
+      <Setter Property="Height" Value="43" />
+      <Setter Property="Margin" Value="0,-1,0,0" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="CornerRadius" Value="0" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.captionButton.windows10">
+      <Setter Property="Width" Value="46" />
+    </Style>
+    <Style Selector="Button.captionButton:pointerover">
+      <Setter Property="Background" Value="#14000000" />
+    </Style>
+    <Style Selector="Button.captionButton.close:pointerover">
+      <Setter Property="Background" Value="#C42B1C" />
+      <Setter Property="Foreground" Value="White" />
+    </Style>
+  </UserControl.Styles>
+
+  <StackPanel Orientation="Horizontal">
+    <Button x:Name="MinimizeButton" Classes="captionButton" Click="MinimizeOnClick"
+            AutomationProperties.Name="Minimize">
+      <Grid Width="13" Height="13">
+        <Border x:Name="Windows10Minimize" Width="10" Height="1" Background="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
+        <Path x:Name="Windows11Minimize" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+              StrokeThickness="1.25" StrokeLineCap="Round" Data="M 0.75,6.45 L 12.15,6.45" />
+      </Grid>
+    </Button>
+    <Button x:Name="MaximizeButton" Classes="captionButton" Click="MaximizeOnClick"
+            AutomationProperties.Name="Maximize">
+      <Grid Width="13" Height="13">
+        <Path x:Name="Windows10Maximize" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+              StrokeThickness="1" Data="M 1.5,1.5 L 10.5,1.5 L 10.5,10.5 L 1.5,10.5 Z" />
+        <Path x:Name="Windows11Maximize" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+              StrokeThickness="1.25" StrokeLineCap="Round" StrokeJoin="Round"
+              Data="M 3,1.75 L 9.5,1.75 Q 10.75,1.75 10.75,3 L 10.75,9.5 Q 10.75,10.75 9.5,10.75 L 3,10.75 Q 1.75,10.75 1.75,9.5 L 1.75,3 Q 1.75,1.75 3,1.75 Z" />
+      </Grid>
+    </Button>
+    <Button x:Name="CloseButton" Classes="captionButton close" Margin="0,-1,-1,0"
+            Click="CloseOnClick" AutomationProperties.Name="Close">
+      <Grid Width="13" Height="13">
+        <Path x:Name="Windows10Close" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+              StrokeThickness="1" Data="M 1.5,1.5 L 10.5,10.5 M 10.5,1.5 L 1.5,10.5" />
+        <Path x:Name="Windows11Close" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+              StrokeThickness="1.25" StrokeLineCap="Round"
+              Data="M 2.25,2.25 L 10.25,10.25 M 10.25,2.25 L 2.25,10.25" />
+      </Grid>
+    </Button>
+  </StackPanel>
+</UserControl>
