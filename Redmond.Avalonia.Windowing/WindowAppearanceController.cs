@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Threading;
+using Redmond.Avalonia.Controls;
 
 namespace Redmond.Avalonia.Windowing;
 
@@ -33,6 +34,7 @@ public sealed class WindowAppearanceController : IDisposable
         _manageDecorations = manageDecorations;
         _window.Opened += OnOpened;
         _window.Closed += OnClosed;
+        _window.PropertyChanged += OnWindowPropertyChanged;
         if (_manageDecorations)
         {
             ApplyWindowDecorations(options);
@@ -48,6 +50,8 @@ public sealed class WindowAppearanceController : IDisposable
     public bool UsesCustomResizeHandles =>
         !((OperatingSystem.IsMacOS() && _options.CornerStyle == WindowCornerStyle.MacOS)
           || (!OperatingSystem.IsMacOS() && _options.ControlStyle == WindowControlStyle.MacOS));
+
+    public bool IsBackdropActive => _options.UsesBackdrop(_window.IsActive);
 
     public event EventHandler? PresentationChanged;
 
@@ -82,11 +86,6 @@ public sealed class WindowAppearanceController : IDisposable
         _options = options;
         _macOSWindowControls?.Dispose();
         _macOSWindowControls = null;
-
-        if (OperatingSystem.IsMacOS() && !UsesFullNativeTitleBar(options))
-        {
-            MacOSNativeTitleBar.Apply(_window, enabled: false);
-        }
 
         if (requiresStagedHostedControls)
         {
@@ -123,6 +122,7 @@ public sealed class WindowAppearanceController : IDisposable
         _isDisposed = true;
         _window.Opened -= OnOpened;
         _window.Closed -= OnClosed;
+        _window.PropertyChanged -= OnWindowPropertyChanged;
         _materialBackdrop?.Dispose();
         _macOSWindowControls?.Dispose();
         _materialBackdrop = null;
@@ -144,6 +144,21 @@ public sealed class WindowAppearanceController : IDisposable
     {
         _isOpened = false;
         Dispose();
+    }
+
+    private void OnWindowPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+    {
+        if (!_isOpened
+            || e.Property != Window.IsActiveProperty
+            || _options.BackgroundMode != TranslucentBackgroundMode.WhenSelected)
+        {
+            return;
+        }
+
+        // Calculator binds its inactive surface class directly to IsActive.
+        // Observe the property after it changes instead of Activated, which can
+        // arrive before IsActive is true on macOS.
+        PresentationChanged?.Invoke(this, EventArgs.Empty);
     }
 
     private void ApplyAll(WindowAppearanceOptions options, bool deferFullNativeTitleBar = false)
@@ -200,26 +215,31 @@ public sealed class WindowAppearanceController : IDisposable
         _materialBackdrop?.Dispose();
         _materialBackdrop = null;
 
-        _window.Background = Brushes.Transparent;
-        _window.TransparencyLevelHint = options.UseSystemBackdrop
-            ? OperatingSystem.IsWindows()
-                ?
-                [
-                    WindowTransparencyLevel.Mica,
-                    WindowTransparencyLevel.AcrylicBlur,
-                    WindowTransparencyLevel.Blur,
-                    WindowTransparencyLevel.Transparent,
-                ]
-                : [WindowTransparencyLevel.Transparent]
-            : [WindowTransparencyLevel.Transparent];
-
-        if (_isOpened && options.UseSystemBackdrop && OperatingSystem.IsMacOS())
+        // Calculator leaves Avalonia's macOS transparency mode alone after
+        // window creation and only attaches/detaches NSVisualEffectView.
+        // Resetting the hint here can rebuild the host composition surface.
+        if (OperatingSystem.IsMacOS())
         {
-            var cornerRadius = options.CornerStyle == WindowCornerStyle.Windows11 ? 8 : 0;
-            _materialBackdrop = MacOSMaterialBackdrop.Attach(_window, cornerRadius);
+            if (_isOpened && options.BackgroundMode != TranslucentBackgroundMode.Never)
+            {
+                var cornerRadius = options.CornerStyle == WindowCornerStyle.Windows11 ? 8 : 0;
+                _materialBackdrop = MacOSMaterialBackdrop.Attach(_window, cornerRadius);
+            }
+
+            MacOSMaterialBackdrop.InvalidateWindowShadow(_window);
+            return;
         }
 
-        MacOSMaterialBackdrop.InvalidateWindowShadow(_window);
+        _window.Background = Brushes.Transparent;
+        _window.TransparencyLevelHint = options.BackgroundMode != TranslucentBackgroundMode.Never
+            ?
+            [
+                WindowTransparencyLevel.Mica,
+                WindowTransparencyLevel.AcrylicBlur,
+                WindowTransparencyLevel.Blur,
+                WindowTransparencyLevel.Transparent,
+            ]
+            : [WindowTransparencyLevel.Transparent];
     }
 
     private void RefreshWindowPresentation(

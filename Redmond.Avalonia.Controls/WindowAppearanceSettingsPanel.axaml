@@ -1,22 +1,28 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:shared="using:Redmond.Avalonia.Controls"
-             x:Class="Redmond.Avalonia.Windowing.WindowAppearanceSettingsPanel">
+             xmlns:local="using:Redmond.Avalonia.Controls"
+             x:Class="Redmond.Avalonia.Controls.WindowAppearanceSettingsPanel">
   <StackPanel Spacing="6">
-    <shared:SettingsCard Header="Translucent background"
-                         Description="Use the system window material when available">
-      <shared:SettingsCard.Icon>
+    <local:AnimatedSettingsExpander Header="Translucent background"
+                                     Description="Choose when the system window material is used">
+      <local:AnimatedSettingsExpander.Icon>
         <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="18" Text="◫" />
-      </shared:SettingsCard.Icon>
-      <ToggleSwitch x:Name="BackdropToggle" OnContent="On" OffContent="Off"
-                    Click="BackdropOnClick" />
-    </shared:SettingsCard>
+      </local:AnimatedSettingsExpander.Icon>
+      <StackPanel Spacing="8">
+        <RadioButton x:Name="BackdropAlways" GroupName="RedmondTranslucentBackground"
+                     Content="Always" Tag="Always" Click="BackdropOnClick" />
+        <RadioButton x:Name="BackdropWhenSelected" GroupName="RedmondTranslucentBackground"
+                     Content="When selected" Tag="WhenSelected" Click="BackdropOnClick" />
+        <RadioButton x:Name="BackdropNever" GroupName="RedmondTranslucentBackground"
+                     Content="Never" Tag="Never" Click="BackdropOnClick" />
+      </StackPanel>
+    </local:AnimatedSettingsExpander>
 
-    <shared:AnimatedSettingsExpander Header="Window corners"
+    <local:AnimatedSettingsExpander Header="Window corners"
                                      Description="Choose the outer window shape">
-      <shared:AnimatedSettingsExpander.Icon>
+      <local:AnimatedSettingsExpander.Icon>
         <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="18" Text="⌜" />
-      </shared:AnimatedSettingsExpander.Icon>
+      </local:AnimatedSettingsExpander.Icon>
       <StackPanel Spacing="8">
         <RadioButton x:Name="Windows10Corners" GroupName="RedmondWindowCorners"
                      Content="Windows 10 — square" Tag="Windows10" Click="CornerOnClick" />
@@ -25,13 +31,13 @@
         <RadioButton x:Name="MacOSCorners" GroupName="RedmondWindowCorners"
                      Content="macOS — rounded" Tag="MacOS" Click="CornerOnClick" />
       </StackPanel>
-    </shared:AnimatedSettingsExpander>
+    </local:AnimatedSettingsExpander>
 
-    <shared:AnimatedSettingsExpander Header="Title bar controls"
+    <local:AnimatedSettingsExpander Header="Title bar controls"
                                      Description="Choose title bar geometry independently from window corners">
-      <shared:AnimatedSettingsExpander.Icon>
+      <local:AnimatedSettingsExpander.Icon>
         <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="17" Text="•••" />
-      </shared:AnimatedSettingsExpander.Icon>
+      </local:AnimatedSettingsExpander.Icon>
       <StackPanel Spacing="8">
         <RadioButton x:Name="Windows10Controls" GroupName="RedmondWindowControls"
                      Content="Windows 10" Tag="Windows10" Click="ControlOnClick" />
@@ -40,6 +46,6 @@
         <RadioButton x:Name="MacOSControls" GroupName="RedmondWindowControls"
                      Content="macOS" Tag="MacOS" Click="ControlOnClick" />
       </StackPanel>
-    </shared:AnimatedSettingsExpander>
+    </local:AnimatedSettingsExpander>
   </StackPanel>
 </UserControl>

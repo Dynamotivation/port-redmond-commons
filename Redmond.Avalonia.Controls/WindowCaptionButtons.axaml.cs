@@ -2,7 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 
-namespace Redmond.Avalonia.Windowing;
+namespace Redmond.Avalonia.Controls;
 
 public partial class WindowCaptionButtons : UserControl
 {

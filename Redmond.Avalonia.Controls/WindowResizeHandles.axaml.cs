@@ -1,7 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 
-namespace Redmond.Avalonia.Windowing;
+namespace Redmond.Avalonia.Controls;
 
 public partial class WindowResizeHandles : UserControl
 {

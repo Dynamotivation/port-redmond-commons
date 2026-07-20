@@ -1,7 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 
-namespace Redmond.Avalonia.Windowing;
+namespace Redmond.Avalonia.Controls;
 
 public partial class WindowAppearanceSettingsPanel : UserControl
 {
@@ -27,7 +27,9 @@ public partial class WindowAppearanceSettingsPanel : UserControl
     private void SynchronizeControls()
     {
         _synchronizing = true;
-        BackdropToggle.IsChecked = _options.UseSystemBackdrop;
+        BackdropAlways.IsChecked = _options.BackgroundMode == TranslucentBackgroundMode.Always;
+        BackdropWhenSelected.IsChecked = _options.BackgroundMode == TranslucentBackgroundMode.WhenSelected;
+        BackdropNever.IsChecked = _options.BackgroundMode == TranslucentBackgroundMode.Never;
         Windows10Corners.IsChecked = _options.CornerStyle == WindowCornerStyle.Windows10;
         Windows11Corners.IsChecked = _options.CornerStyle == WindowCornerStyle.Windows11;
         MacOSCorners.IsChecked = _options.CornerStyle == WindowCornerStyle.MacOS;
@@ -37,8 +39,14 @@ public partial class WindowAppearanceSettingsPanel : UserControl
         _synchronizing = false;
     }
 
-    private void BackdropOnClick(object? sender, RoutedEventArgs e) =>
-        Update(_options with { UseSystemBackdrop = BackdropToggle.IsChecked == true });
+    private void BackdropOnClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is RadioButton { Tag: string value }
+            && Enum.TryParse<TranslucentBackgroundMode>(value, out var mode))
+        {
+            Update(_options with { BackgroundMode = mode });
+        }
+    }
 
     private void CornerOnClick(object? sender, RoutedEventArgs e)
     {
