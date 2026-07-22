@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Redmond.Shortcuts</RootNamespace>
+    <Description>Platform-neutral keyboard shortcut matching, validation, and display for Redmond applications.</Description>
+  </PropertyGroup>
+</Project>
