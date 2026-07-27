@@ -1,12 +1,12 @@
 # Redmond Avalonia Controls
 
-Workspace-level shared controls for Redmond Project Avalonia frontends. This
-directory deliberately sits beside, rather than inside, Calculator and
-Notepad. Consumers add a relative project reference and import the bundled
-styles:
+Shared controls for the `port-redmond-calculator` and
+`port-redmond-notepad` Avalonia frontends. Applications pin this repository as
+their `redmond-commons` Git submodule, add relative project references, and
+import the bundled styles:
 
 ```xml
-<ProjectReference Include="../../../Redmond.Avalonia.Controls/Redmond.Avalonia.Controls.csproj" />
+<ProjectReference Include="../../../redmond-commons/Redmond.Avalonia.Controls/Redmond.Avalonia.Controls.csproj" />
 ```
 
 ```xml
@@ -48,5 +48,5 @@ provides consistent chrome glyphs such as Settings on every target platform,
 including systems without Segoe Fluent Icons installed.
 
 This is intentionally a source project rather than a published package.
-See [`../SHARED-DEVELOPMENT.md`](../SHARED-DEVELOPMENT.md) for the private
-workspace and submodule strategy.
+See [`../SHARED-DEVELOPMENT.md`](../SHARED-DEVELOPMENT.md) for the submodule
+layout and update workflow.
