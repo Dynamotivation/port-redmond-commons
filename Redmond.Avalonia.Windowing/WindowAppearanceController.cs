@@ -15,6 +15,7 @@ public sealed class WindowAppearanceController : IDisposable
     private readonly Window _window;
     private readonly Border? _surface;
     private readonly bool _manageDecorations;
+    private readonly bool _enableNativeEffects;
     private MacOSMaterialBackdrop? _materialBackdrop;
     private MacOSWindowControls? _macOSWindowControls;
     private WindowAppearanceOptions _options;
@@ -26,12 +27,14 @@ public sealed class WindowAppearanceController : IDisposable
         Window window,
         Border? surface,
         WindowAppearanceOptions options,
-        bool manageDecorations)
+        bool manageDecorations,
+        bool enableNativeEffects)
     {
         _window = window;
         _surface = surface;
         _options = options;
         _manageDecorations = manageDecorations;
+        _enableNativeEffects = enableNativeEffects;
         _window.Opened += OnOpened;
         _window.Closed += OnClosed;
         _window.PropertyChanged += OnWindowPropertyChanged;
@@ -59,8 +62,14 @@ public sealed class WindowAppearanceController : IDisposable
         Window window,
         Border? surface = null,
         WindowAppearanceOptions? options = null,
-        bool manageDecorations = true) =>
-        new(window, surface, options ?? new WindowAppearanceOptions(), manageDecorations);
+        bool manageDecorations = true,
+        bool enableNativeEffects = true) =>
+        new(
+            window,
+            surface,
+            options ?? new WindowAppearanceOptions(),
+            manageDecorations,
+            enableNativeEffects);
 
     public void Apply(WindowAppearanceOptions options)
     {
@@ -220,6 +229,11 @@ public sealed class WindowAppearanceController : IDisposable
         // Resetting the hint here can rebuild the host composition surface.
         if (OperatingSystem.IsMacOS())
         {
+            if (!_enableNativeEffects)
+            {
+                return;
+            }
+
             if (_isOpened && options.BackgroundMode != TranslucentBackgroundMode.Never)
             {
                 var cornerRadius = options.CornerStyle == WindowCornerStyle.Windows11 ? 8 : 0;
@@ -246,7 +260,7 @@ public sealed class WindowAppearanceController : IDisposable
         WindowAppearanceOptions options,
         bool deferFullNativeTitleBar = false)
     {
-        if (!_isOpened || !OperatingSystem.IsMacOS())
+        if (!_isOpened || !_enableNativeEffects || !OperatingSystem.IsMacOS())
         {
             return;
         }

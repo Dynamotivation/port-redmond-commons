@@ -13,10 +13,9 @@ styles:
 <StyleInclude Source="avares://Redmond.Avalonia.Controls/Themes/SettingsControls.axaml" />
 ```
 
-`AnimatedSettingsExpander` was copied and generalized from the Redmond
-Calculator implementation in
-`../calculator/src/Frontends/Calculator.Avalonia/AnimatedSettingsExpander.cs` and
-its settings styles in `MainWindow.axaml`. The shared control owns the header,
+`AnimatedSettingsExpander` was extracted and generalized from Redmond
+Calculator. Calculator and Notepad now consume this shared implementation
+instead of carrying application-local copies. The shared control owns the header,
 animated chevron, 200ms content reveal, reversal handling, card bezel, hover
 states, 72px sizing, and standard settings-content margins.
 
@@ -49,3 +48,5 @@ provides consistent chrome glyphs such as Settings on every target platform,
 including systems without Segoe Fluent Icons installed.
 
 This is intentionally a source project rather than a published package.
+See [`../SHARED-DEVELOPMENT.md`](../SHARED-DEVELOPMENT.md) for the private
+workspace and submodule strategy.

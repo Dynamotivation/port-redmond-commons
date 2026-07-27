@@ -3,9 +3,10 @@
 Shared window materials, corner application, decoration policy, and native
 platform integration for Redmond Project Avalonia applications.
 
-The initial implementation is copied and generalized from Redmond Calculator.
-Calculator remains unchanged; applications consume this project through a
-workspace-relative `ProjectReference`.
+The initial implementation was extracted and generalized from Redmond
+Calculator. Calculator and Notepad consume it through workspace-relative
+`ProjectReference` entries; native window interop no longer lives in either
+application.
 
 Windows uses Avalonia's supported Mica/Acrylic transparency fallback chain.
 macOS uses the copied AppKit `NSVisualEffectView` bridge because Avalonia only
@@ -19,3 +20,7 @@ window. In particular, corner rounding belongs here because it spans Avalonia
 surface geometry, client-area decoration policy, macOS native layer corner
 radii, and native shadow refreshes; it is behavior rather than a standalone
 visual control.
+
+`WindowAppearanceController.Attach` accepts `enableNativeEffects: false` for
+headless and snapshot hosts. Decoration and surface state still apply, while
+native platform calls are suppressed.
