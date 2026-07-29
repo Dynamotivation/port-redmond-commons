@@ -1,5 +1,3 @@
-using System.Text.RegularExpressions;
-
 namespace Redmond.Shortcuts;
 
 public enum ShortcutTextRewriteMode
@@ -9,7 +7,7 @@ public enum ShortcutTextRewriteMode
     ReplaceOrAppend,
 }
 
-public sealed partial class ShortcutTextFormatter
+public sealed class ShortcutTextFormatter
 {
     public const string Placeholder = "{shortcut}";
 
@@ -47,12 +45,10 @@ public sealed partial class ShortcutTextFormatter
             return localizedText;
         }
 
-        var match = TrailingParenthetical().Match(localizedText);
-        if (match.Success)
+        if (TryFindTrailingParenthetical(localizedText, out var start, out var opening))
         {
-            var opening = match.Groups["open"].Value;
-            var closing = opening == "（" ? "）" : ")";
-            return localizedText[..match.Index] + opening + shortcutDisplayText + closing;
+            var closing = opening == '（' ? '）' : ')';
+            return localizedText[..start] + opening + shortcutDisplayText + closing;
         }
 
         return mode == ShortcutTextRewriteMode.ReplaceOrAppend
@@ -60,6 +56,48 @@ public sealed partial class ShortcutTextFormatter
             : localizedText;
     }
 
-    [GeneratedRegex(@"(?<open>\(|（)[^()（）]*(?:\)|）)\s*$", RegexOptions.CultureInvariant)]
-    private static partial Regex TrailingParenthetical();
+    private static bool TryFindTrailingParenthetical(
+        string text,
+        out int start,
+        out char opening)
+    {
+        var index = text.Length - 1;
+        while (index >= 0 && char.IsWhiteSpace(text[index]))
+        {
+            index--;
+        }
+
+        if (index < 0 || text[index] is not (')' or '）'))
+        {
+            start = -1;
+            opening = default;
+            return false;
+        }
+
+        var depth = 0;
+        for (; index >= 0; index--)
+        {
+            switch (text[index])
+            {
+                case ')':
+                case '）':
+                    depth++;
+                    break;
+                case '(':
+                case '（':
+                    depth--;
+                    if (depth == 0)
+                    {
+                        start = index;
+                        opening = text[index];
+                        return true;
+                    }
+                    break;
+            }
+        }
+
+        start = -1;
+        opening = default;
+        return false;
+    }
 }
