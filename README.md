@@ -19,3 +19,9 @@ dotnet build Redmond.Shortcuts/Redmond.Shortcuts.csproj
 
 See [SHARED-DEVELOPMENT.md](SHARED-DEVELOPMENT.md) for the application layout
 and update workflow.
+
+## License
+
+Redmond Commons is available under the [MIT License](LICENSE).
+The bundled Calculator Fluent icon font remains Microsoft-owned and is
+documented in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

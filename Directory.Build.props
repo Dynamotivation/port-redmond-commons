@@ -1,0 +1,10 @@
+<Project>
+  <PropertyGroup>
+    <Authors>Redmond Commons contributors</Authors>
+    <Copyright>Copyright (c) 2026 Redmond Commons contributors</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <RepositoryUrl>https://github.com/Dynamotivation/port-redmond-commons</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+  </PropertyGroup>
+</Project>
