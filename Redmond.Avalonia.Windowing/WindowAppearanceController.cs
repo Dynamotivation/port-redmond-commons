@@ -51,7 +51,8 @@ public sealed class WindowAppearanceController : IDisposable
         OperatingSystem.IsMacOS() && _options.ControlStyle == WindowControlStyle.MacOS;
 
     public bool UsesCustomResizeHandles =>
-        !((OperatingSystem.IsMacOS() && _options.CornerStyle == WindowCornerStyle.MacOS)
+        !OperatingSystem.IsWindows()
+        && !((OperatingSystem.IsMacOS() && _options.CornerStyle == WindowCornerStyle.MacOS)
           || (!OperatingSystem.IsMacOS() && _options.ControlStyle == WindowControlStyle.MacOS));
 
     public bool IsBackdropActive => _options.UsesBackdrop(_window.IsActive);
@@ -181,6 +182,14 @@ public sealed class WindowAppearanceController : IDisposable
 
     private void ApplyWindowDecorations(WindowAppearanceOptions options)
     {
+        if (OperatingSystem.IsWindows())
+        {
+            _window.ExtendClientAreaToDecorationsHint = true;
+            _window.ExtendClientAreaTitleBarHeightHint = 34;
+            _window.WindowDecorations = WindowDecorations.Full;
+            return;
+        }
+
         if (!OperatingSystem.IsMacOS())
         {
             var useNativeDecorations = options.ControlStyle == WindowControlStyle.MacOS;
