@@ -39,6 +39,11 @@ generalized from Calculator:
 - `WindowAppearanceOptions` contains the shared appearance values used by both
   controls and the native windowing implementation.
 
+- `MenuItemShortcut.Text` is an attached property that replaces a Fluent
+  `MenuItem`'s gesture text with a label from `Redmond.Shortcuts`
+  (`Strg+Umschalt+S` on German Windows, for example). Keep setting
+  `InputGesture` too.
+
 These types contain no AppKit, Win32, or compositor integration. Keeping them
 here lets applications reuse the same visuals without coupling their XAML to a
 native-platform library.

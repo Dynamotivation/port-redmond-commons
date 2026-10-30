@@ -30,21 +30,37 @@ public interface IShortcutConventionValidator
 {
     IReadOnlyList<ShortcutConventionIssue> Validate(
         IEnumerable<ShortcutDefinition> definitions,
-        ShortcutPlatform platform);
+        ShortcutPlatform platform,
+        MacPrimaryModifier macModifier = MacPrimaryModifier.Command);
 }
 
 public sealed class ShortcutConventionValidator : IShortcutConventionValidator
 {
     public IReadOnlyList<ShortcutConventionIssue> Validate(
         IEnumerable<ShortcutDefinition> definitions,
-        ShortcutPlatform platform)
+        ShortcutPlatform platform,
+        MacPrimaryModifier macModifier = MacPrimaryModifier.Command)
     {
         ArgumentNullException.ThrowIfNull(definitions);
         var issues = new List<ShortcutConventionIssue>();
         foreach (var definition in definitions)
         {
             ArgumentNullException.ThrowIfNull(definition);
-            foreach (var gesture in definition.ResolveGestures(platform).Distinct())
+            foreach (var gesture in new[] { definition.Gesture }.Concat(definition.AlternateGestures))
+            {
+                if (!ShortcutPrimaryModifier.IsKeyAvailable(gesture.Key, platform))
+                {
+                    issues.Add(new ShortcutConventionIssue(
+                        definition.Id,
+                        platform,
+                        gesture,
+                        ShortcutConventionIssueKind.UnavailableKey,
+                        ShortcutConventionSeverity.Information,
+                        $"The {gesture.Key.Value} key is not on this platform's keyboard, so the gesture is left out."));
+                }
+            }
+
+            foreach (var gesture in definition.ResolveGestures(platform, macModifier))
             {
                 ValidateGesture(definition, platform, gesture, issues);
             }
