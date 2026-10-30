@@ -41,7 +41,8 @@ revision it was built and tested against without requiring a package feed.
 1. Make and commit a change in `port-redmond-commons`.
 2. Push the Commons commit.
 3. Update the `redmond-commons` submodule in each consuming application.
-4. Build and test both applications.
+4. Run `dotnet run --project Redmond.Commons.Verification`, then build and
+   test both applications.
 5. Commit and push the new submodule revisions.
 
 Avoid Git subtree copies here: they duplicate shared source into both

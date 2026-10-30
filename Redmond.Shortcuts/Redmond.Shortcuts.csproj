@@ -6,4 +6,7 @@
     <RootNamespace>Redmond.Shortcuts</RootNamespace>
     <Description>Platform-neutral keyboard shortcut matching, validation, and display for Redmond applications.</Description>
   </PropertyGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="ShortcutLabels.json" LogicalName="Redmond.Shortcuts.ShortcutLabels.json" />
+  </ItemGroup>
 </Project>
