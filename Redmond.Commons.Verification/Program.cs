@@ -22,6 +22,7 @@ var tests = new (string Name, Action Run)[]
     ("German labels", GermanLabels),
     ("Labels fall back to the language, then English", LabelsFallBack),
     ("Validation sees the resolved modifier", ValidationUsesResolvedModifier),
+    ("Reserved macOS shortcuts are flagged", ReservedMacShortcutsAreFlagged),
     ("Menu items show the shared label", MenuItemsShowSharedLabel),
 };
 
@@ -164,6 +165,52 @@ void ValidationUsesResolvedModifier()
         .Any(issue => issue.Kind == ShortcutConventionIssueKind.NonIdiomaticModifier), "Command is idiomatic");
     True(validator.Validate(definitions, ShortcutPlatform.MacOS, MacPrimaryModifier.Control)
         .Any(issue => issue.Kind == ShortcutConventionIssueKind.NonIdiomaticModifier), "Control is flagged");
+}
+
+void ReservedMacShortcutsAreFlagged()
+{
+    IReadOnlyList<ShortcutConventionIssue> Collisions(
+        string gesture,
+        MacPrimaryModifier modifier = MacPrimaryModifier.Command) =>
+        new ShortcutConventionValidator()
+            .Validate([new ShortcutDefinition("probe", ShortcutGesture.Parse(gesture), scope: "probe")],
+                ShortcutPlatform.MacOS,
+                modifier)
+            .Where(issue => issue.IsCollision)
+            .ToArray();
+
+    foreach (var gesture in new[] { "Primary+H", "Primary+M", "Primary+Q", "Primary+Alt+H", "Primary+Space",
+                 "Primary+Shift+D3", "Primary+Tab", "Primary+Ctrl+F", "Alt+Up" })
+    {
+        True(Collisions(gesture).Any(issue => issue.Severity == ShortcutConventionSeverity.Error),
+            $"{gesture} collides on macOS");
+    }
+
+    True(Collisions("Primary+Space", MacPrimaryModifier.Control).Any(), "Control+Space selects the input source");
+    True(Collisions("Primary+Up", MacPrimaryModifier.Control).Any(), "Control+Up opens Mission Control");
+    True(!Collisions("Primary+Up").Any(), "Command+Up is free");
+
+    foreach (var gesture in new[] { "Primary+N", "Primary+W", "Primary+OemComma" })
+    {
+        var issues = Collisions(gesture);
+        True(issues.Count == 1 && issues[0].Severity == ShortcutConventionSeverity.Warning,
+            $"{gesture} is a conventional command, reported as a warning");
+    }
+
+    foreach (var gesture in new[] { "Primary+Shift+H", "Primary+Shift+M", "Primary+Shift+P", "Primary+Alt+Up",
+                 "Primary+S", "Primary+D0", "F3" })
+    {
+        True(!Collisions(gesture).Any(), $"{gesture} is free on macOS");
+        True(!Collisions(gesture, MacPrimaryModifier.Control).Any(), $"{gesture} is free with Control");
+    }
+
+    var character = new ShortcutDefinition("probe", new ShortcutGesture(ShortcutKey.Character('h'), ShortcutModifiers.Primary));
+    True(new ShortcutConventionValidator().Validate([character], ShortcutPlatform.MacOS).Any(issue => issue.IsCollision),
+        "character keys are compared by name");
+    True(!new ShortcutConventionValidator().Validate(
+                [new ShortcutDefinition("probe", ShortcutGesture.Parse("Primary+H"))], ShortcutPlatform.Windows)
+            .Any(issue => issue.IsCollision),
+        "the macOS list does not apply to Windows");
 }
 
 void MenuItemsShowSharedLabel()

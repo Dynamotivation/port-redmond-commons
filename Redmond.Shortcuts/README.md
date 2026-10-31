@@ -25,8 +25,28 @@ new ShortcutDefinition("edit.find-next", ShortcutGesture.Parse("F3"));
 | macOS, setting *Control* | Control |
 
 A gesture that names `Control` (or `Ctrl`) instead of `Primary` means Control
-on every platform. Calculator uses this for its Windows accelerators such as
-Ctrl+M, which would otherwise take macOS's Command+M, Command+H and Command+Q.
+on every platform. Applications should not need it: use `Primary` for every
+application command so the macOS setting and the labels apply uniformly.
+
+## Reserved macOS shortcuts
+
+`MacOSReservedShortcuts.All` lists the gestures macOS itself or the standard
+app menu uses: ⌘H, ⌥⌘H, ⌘M, ⌘Q, ⌘Space, ⌃Space, ⌘Tab, ⌘\`, ⌥⌘Esc, ⌃⌘F, ⌃⌘Q,
+⇧⌘Q, the screenshot keys, ⌃ plus an arrow (Mission Control and Spaces), and
+others. `ShortcutConventionValidator` checks every resolved macOS gesture against
+it, so run it for both `MacPrimaryModifier` values:
+
+- A collision is an error (`ReservedByOperatingSystem`). Change the shortcut's
+  gesture for **every** platform, keeping a mnemonic where possible (for example
+  Primary+H → Primary+Shift+H). Never add a macOS-only variant.
+- ⌘N, ⌘W and ⌘, are conventional commands (New, Close, Settings). They are
+  reported as `CommonApplicationCollision` warnings and are fine for exactly that
+  command.
+- Option(+Shift) plus an arrow is macOS text navigation and is an error unless
+  Command or Control is also held.
+
+`ShortcutConventionIssue.IsCollision` is true for both collision kinds.
+Applications assert in their tests that no shortcut collides.
 
 A gesture whose key is missing from a platform's standard keyboard is left out
 there (`ShortcutPrimaryModifier.IsKeyAvailable`; today: Insert on a Mac). That
