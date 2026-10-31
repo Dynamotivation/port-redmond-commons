@@ -204,6 +204,11 @@ void ReservedMacShortcutsAreFlagged()
         True(!Collisions(gesture, MacPrimaryModifier.Control).Any(), $"{gesture} is free with Control");
     }
 
+    var unscopedSelection = new ShortcutDefinition("probe", ShortcutGesture.Parse("Shift+Left"));
+    True(new ShortcutConventionValidator().Validate([unscopedSelection], ShortcutPlatform.MacOS).Any(issue => issue.IsCollision),
+        "an unscoped Shift+arrow takes text selection");
+    True(!Collisions("Shift+Left").Any(), "a focus-scoped Shift+arrow is fine");
+
     var character = new ShortcutDefinition("probe", new ShortcutGesture(ShortcutKey.Character('h'), ShortcutModifiers.Primary));
     True(new ShortcutConventionValidator().Validate([character], ShortcutPlatform.MacOS).Any(issue => issue.IsCollision),
         "character keys are compared by name");
