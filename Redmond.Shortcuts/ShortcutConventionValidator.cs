@@ -108,7 +108,7 @@ public sealed class ShortcutConventionValidator : IShortcutConventionValidator
         switch (platform)
         {
             case ShortcutPlatform.MacOS:
-                ValidateMacOS(gesture, Add);
+                ValidateMacOS(definition, gesture, Add);
                 break;
             case ShortcutPlatform.Windows:
                 ValidateWindows(gesture, Add);
@@ -125,6 +125,7 @@ public sealed class ShortcutConventionValidator : IShortcutConventionValidator
     }
 
     private static void ValidateMacOS(
+        ShortcutDefinition definition,
         ShortcutGesture gesture,
         Action<ShortcutConventionIssueKind, ShortcutConventionSeverity, string> add)
     {
@@ -157,7 +158,7 @@ public sealed class ShortcutConventionValidator : IShortcutConventionValidator
                 "Option plus a letter or number may produce a special character on the active macOS keyboard layout.");
         }
 
-        if (gesture.Modifiers == ShortcutModifiers.Shift && IsArrow(gesture.Key))
+        if (definition.Scope is null && gesture.Modifiers == ShortcutModifiers.Shift && IsArrow(gesture.Key))
         {
             add(ShortcutConventionIssueKind.CommonApplicationCollision, ShortcutConventionSeverity.Warning,
                 "Shift plus an arrow is conventional text selection and must remain focus-scoped.");
