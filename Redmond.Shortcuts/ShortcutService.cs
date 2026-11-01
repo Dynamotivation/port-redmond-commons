@@ -17,7 +17,21 @@ public sealed class ShortcutServiceOptions
 {
     public ShortcutDispatchPolicy DispatchPolicy { get; init; } = ShortcutDispatchPolicy.FirstMatch;
 
+    /// <summary>
+    /// Overrides the labels. When null, labels come from
+    /// <see cref="ShortcutDisplayOptions.ForPlatform(ShortcutPlatform, System.Globalization.CultureInfo?)"/>
+    /// for <see cref="LabelCulture"/>.
+    /// </summary>
     public ShortcutDisplayOptions? DisplayOptions { get; init; }
+
+    /// <summary>
+    /// The language of modifier and key labels (for example <c>Strg</c> for German).
+    /// Defaults to <see cref="ShortcutLabels.DetectCulture"/>.
+    /// </summary>
+    public System.Globalization.CultureInfo? LabelCulture { get; init; }
+
+    /// <summary>The initial value of <see cref="IShortcutService.MacPrimaryModifier"/>.</summary>
+    public MacPrimaryModifier MacPrimaryModifier { get; init; } = MacPrimaryModifier.Command;
 
     public string AlternativeDisplaySeparator { get; init; } = " / ";
 }
@@ -75,7 +89,26 @@ public interface IShortcutService
 {
     event EventHandler<ShortcutPressedEventArgs>? ShortcutPressed;
 
+    /// <summary>
+    /// Raised after <see cref="MacPrimaryModifier"/> changes, so menus and tooltips
+    /// can refresh their gesture text.
+    /// </summary>
+    event EventHandler? GesturesChanged;
+
     ShortcutPlatform Platform { get; }
+
+    /// <summary>
+    /// The key <see cref="ShortcutModifiers.Primary"/> means on macOS. Changing it
+    /// takes effect immediately for matching and display; registrations stay.
+    /// It has no effect on other platforms.
+    /// </summary>
+    MacPrimaryModifier MacPrimaryModifier { get; set; }
+
+    /// <summary>The physical modifier Primary currently resolves to.</summary>
+    ShortcutModifiers PrimaryModifier { get; }
+
+    /// <summary>Formats a physical or neutral gesture with this service's labels.</summary>
+    string FormatGesture(ShortcutGesture gesture);
 
     IDisposable Register(ShortcutDefinition definition, Action<ShortcutMatch>? handler = null);
 
@@ -112,6 +145,7 @@ public sealed class ShortcutService : IShortcutService
     private readonly ShortcutTextFormatter _textFormatter = new();
     private readonly string _alternativeDisplaySeparator;
     private long _nextOrder;
+    private volatile int _macPrimaryModifier;
 
     public ShortcutService(ShortcutPlatform platform, ShortcutServiceOptions? options = null)
     {
@@ -119,14 +153,39 @@ public sealed class ShortcutService : IShortcutService
         options ??= new ShortcutServiceOptions();
         _dispatchPolicy = options.DispatchPolicy;
         _displayFormatter = new ShortcutDisplayFormatter(
-            options.DisplayOptions ?? ShortcutDisplayOptions.ForPlatform(platform));
+            options.DisplayOptions ?? ShortcutDisplayOptions.ForPlatform(platform, options.LabelCulture));
+        MacPrimaryModifier = options.MacPrimaryModifier;
         _alternativeDisplaySeparator = options.AlternativeDisplaySeparator ??
             throw new ArgumentNullException(nameof(options.AlternativeDisplaySeparator));
     }
 
     public event EventHandler<ShortcutPressedEventArgs>? ShortcutPressed;
 
+    public event EventHandler? GesturesChanged;
+
     public ShortcutPlatform Platform { get; }
+
+    public MacPrimaryModifier MacPrimaryModifier
+    {
+        get => (MacPrimaryModifier)_macPrimaryModifier;
+        set
+        {
+            if (!Enum.IsDefined(value))
+            {
+                throw new ArgumentOutOfRangeException(nameof(value), value, "Unknown macOS primary modifier.");
+            }
+
+            if (Interlocked.Exchange(ref _macPrimaryModifier, (int)value) != (int)value)
+            {
+                GesturesChanged?.Invoke(this, EventArgs.Empty);
+            }
+        }
+    }
+
+    public ShortcutModifiers PrimaryModifier => ShortcutPrimaryModifier.Resolve(Platform, MacPrimaryModifier);
+
+    public string FormatGesture(ShortcutGesture gesture) =>
+        _displayFormatter.Format(ShortcutPrimaryModifier.Resolve(gesture, Platform, MacPrimaryModifier));
 
     public IDisposable Register(ShortcutDefinition definition, Action<ShortcutMatch>? handler = null)
     {
@@ -158,13 +217,14 @@ public sealed class ShortcutService : IShortcutService
         }
     }
 
-    public ShortcutGesture GetGesture(string shortcutId) => GetRequiredDefinition(shortcutId).ResolveGesture(Platform);
+    public ShortcutGesture GetGesture(string shortcutId) =>
+        GetRequiredDefinition(shortcutId).ResolveGesture(Platform, MacPrimaryModifier);
 
     public string GetGestureDisplayText(string shortcutId) => _displayFormatter.Format(GetGesture(shortcutId));
 
     public IReadOnlyList<string> GetGestureDisplayTexts(string shortcutId) =>
         GetRequiredDefinition(shortcutId)
-            .ResolveGestures(Platform)
+            .ResolveGestures(Platform, MacPrimaryModifier)
             .Select(_displayFormatter.Format)
             .Distinct(StringComparer.Ordinal)
             .ToArray();
@@ -225,8 +285,8 @@ public sealed class ShortcutService : IShortcutService
             for (var secondIndex = firstIndex + 1; secondIndex < snapshot.Length; secondIndex++)
             {
                 var second = snapshot[secondIndex].Definition;
-                var sharedGestures = first.ResolveGestures(Platform)
-                    .Intersect(second.ResolveGestures(Platform))
+                var sharedGestures = first.ResolveGestures(Platform, MacPrimaryModifier)
+                    .Intersect(second.ResolveGestures(Platform, MacPrimaryModifier))
                     .ToArray();
                 if (sharedGestures.Length > 0 && ScopesOverlap(first.Scope, second.Scope))
                 {
@@ -251,7 +311,7 @@ public sealed class ShortcutService : IShortcutService
             definitions = _registrations.Select(item => item.Definition).ToArray();
         }
 
-        return new ShortcutConventionValidator().Validate(definitions, Platform);
+        return new ShortcutConventionValidator().Validate(definitions, Platform, MacPrimaryModifier);
     }
 
     public string FormatText(string shortcutId, string localizedTemplate) =>
@@ -295,7 +355,7 @@ public sealed class ShortcutService : IShortcutService
             return false;
         }
 
-        return definition.ResolveGestures(Platform).Contains(input.Gesture);
+        return definition.ResolveGestures(Platform, MacPrimaryModifier).Contains(input.Gesture);
     }
 
     private static bool ScopeIsActive(string? scope, IReadOnlySet<string>? activeScopes) =>

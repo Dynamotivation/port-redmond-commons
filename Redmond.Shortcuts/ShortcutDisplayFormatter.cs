@@ -43,81 +43,25 @@ public sealed class ShortcutDisplayOptions
 
     public IReadOnlyDictionary<string, string> NamedKeyNames { get; }
 
-    public static ShortcutDisplayOptions ForPlatform(ShortcutPlatform platform) => platform switch
-    {
-        ShortcutPlatform.MacOS => new ShortcutDisplayOptions(
-            ShortcutDisplayStyle.Symbols,
-            separator: string.Empty,
-            concatenateSymbols: true,
-            modifierNames: new Dictionary<ShortcutModifiers, string>
-            {
-                [ShortcutModifiers.Control] = "⌃",
-                [ShortcutModifiers.Alt] = "⌥",
-                [ShortcutModifiers.Shift] = "⇧",
-                [ShortcutModifiers.Command] = "⌘",
-                [ShortcutModifiers.Super] = "◆",
-            },
-            namedKeyNames: CreateMacKeyNames()),
-        ShortcutPlatform.Linux => CreateTextOptions("Ctrl", "Alt", "Shift", "Command", "Super"),
-        _ => CreateTextOptions("Ctrl", "Alt", "Shift", "Command", "Win"),
-    };
-
-    private static ShortcutDisplayOptions CreateTextOptions(
-        string control,
-        string alt,
-        string shift,
-        string command,
-        string super) =>
-        new(
-            ShortcutDisplayStyle.Text,
-            modifierNames: new Dictionary<ShortcutModifiers, string>
-            {
-                [ShortcutModifiers.Control] = control,
-                [ShortcutModifiers.Alt] = alt,
-                [ShortcutModifiers.Shift] = shift,
-                [ShortcutModifiers.Command] = command,
-                [ShortcutModifiers.Super] = super,
-            },
-            namedKeyNames: CreateTextKeyNames());
-
-    private static Dictionary<string, string> CreateTextKeyNames() => new(StringComparer.OrdinalIgnoreCase)
-    {
-        ["BACK"] = "Backspace",
-        ["BACKSPACE"] = "Backspace",
-        ["DELETE"] = "Delete",
-        ["DOWN"] = "Down",
-        ["END"] = "End",
-        ["ENTER"] = "Enter",
-        ["ESC"] = "Esc",
-        ["ESCAPE"] = "Esc",
-        ["HOME"] = "Home",
-        ["INSERT"] = "Insert",
-        ["LEFT"] = "Left",
-        ["PAGEDOWN"] = "Page Down",
-        ["PAGEUP"] = "Page Up",
-        ["RIGHT"] = "Right",
-        ["SPACE"] = "Space",
-        ["UP"] = "Up",
-    };
-
-    private static Dictionary<string, string> CreateMacKeyNames() => new(StringComparer.OrdinalIgnoreCase)
-    {
-        ["BACK"] = "⌫",
-        ["BACKSPACE"] = "⌫",
-        ["DELETE"] = "⌦",
-        ["DOWN"] = "↓",
-        ["END"] = "↘",
-        ["ENTER"] = "↩",
-        ["ESC"] = "Esc",
-        ["ESCAPE"] = "Esc",
-        ["HOME"] = "↖",
-        ["LEFT"] = "←",
-        ["PAGEDOWN"] = "⇟",
-        ["PAGEUP"] = "⇞",
-        ["RIGHT"] = "→",
-        ["SPACE"] = "Space",
-        ["UP"] = "↑",
-    };
+    /// <summary>
+    /// The platform's display style with labels in <paramref name="culture"/>
+    /// (default: <see cref="ShortcutLabels.DetectCulture"/>), for example
+    /// <c>Strg+Umschalt+S</c> on German Windows and <c>⇧⌘S</c> on macOS.
+    /// </summary>
+    public static ShortcutDisplayOptions ForPlatform(
+        ShortcutPlatform platform,
+        System.Globalization.CultureInfo? culture = null) =>
+        platform == ShortcutPlatform.MacOS
+            ? new ShortcutDisplayOptions(
+                ShortcutDisplayStyle.Symbols,
+                separator: string.Empty,
+                concatenateSymbols: true,
+                modifierNames: ShortcutLabels.GetModifierNames(platform, culture),
+                namedKeyNames: ShortcutLabels.GetKeyNames(platform, culture))
+            : new ShortcutDisplayOptions(
+                ShortcutDisplayStyle.Text,
+                modifierNames: ShortcutLabels.GetModifierNames(platform, culture),
+                namedKeyNames: ShortcutLabels.GetKeyNames(platform, culture));
 }
 
 public sealed class ShortcutDisplayFormatter
@@ -139,8 +83,20 @@ public sealed class ShortcutDisplayFormatter
         _options = options;
     }
 
+    /// <summary>
+    /// Formats a physical gesture. Resolve <see cref="ShortcutModifiers.Primary"/> first
+    /// (<see cref="IShortcutService.FormatGesture"/> does); an unresolved Primary is
+    /// shown with the Control label.
+    /// </summary>
     public string Format(ShortcutGesture gesture)
     {
+        if (gesture.Modifiers.HasFlag(ShortcutModifiers.Primary))
+        {
+            gesture = new ShortcutGesture(
+                gesture.Key,
+                (gesture.Modifiers & ~ShortcutModifiers.Primary) | ShortcutModifiers.Control);
+        }
+
         var parts = new List<string>();
         foreach (var modifier in ModifierOrder)
         {
