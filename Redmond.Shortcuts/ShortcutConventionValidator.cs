@@ -24,27 +24,52 @@ public sealed record ShortcutConventionIssue(
     ShortcutGesture Gesture,
     ShortcutConventionIssueKind Kind,
     ShortcutConventionSeverity Severity,
-    string Message);
+    string Message)
+{
+    /// <summary>
+    /// True when the gesture collides with a system, app-menu or text-editing
+    /// shortcut, as opposed to a style or keyboard-availability note.
+    /// </summary>
+    public bool IsCollision =>
+        Kind is ShortcutConventionIssueKind.ReservedByOperatingSystem
+            or ShortcutConventionIssueKind.CommonApplicationCollision;
+}
 
 public interface IShortcutConventionValidator
 {
     IReadOnlyList<ShortcutConventionIssue> Validate(
         IEnumerable<ShortcutDefinition> definitions,
-        ShortcutPlatform platform);
+        ShortcutPlatform platform,
+        MacPrimaryModifier macModifier = MacPrimaryModifier.Command);
 }
 
 public sealed class ShortcutConventionValidator : IShortcutConventionValidator
 {
     public IReadOnlyList<ShortcutConventionIssue> Validate(
         IEnumerable<ShortcutDefinition> definitions,
-        ShortcutPlatform platform)
+        ShortcutPlatform platform,
+        MacPrimaryModifier macModifier = MacPrimaryModifier.Command)
     {
         ArgumentNullException.ThrowIfNull(definitions);
         var issues = new List<ShortcutConventionIssue>();
         foreach (var definition in definitions)
         {
             ArgumentNullException.ThrowIfNull(definition);
-            foreach (var gesture in definition.ResolveGestures(platform).Distinct())
+            foreach (var gesture in new[] { definition.Gesture }.Concat(definition.AlternateGestures))
+            {
+                if (!ShortcutPrimaryModifier.IsKeyAvailable(gesture.Key, platform))
+                {
+                    issues.Add(new ShortcutConventionIssue(
+                        definition.Id,
+                        platform,
+                        gesture,
+                        ShortcutConventionIssueKind.UnavailableKey,
+                        ShortcutConventionSeverity.Information,
+                        $"The {gesture.Key.Value} key is not on this platform's keyboard, so the gesture is left out."));
+                }
+            }
+
+            foreach (var gesture in definition.ResolveGestures(platform, macModifier))
             {
                 ValidateGesture(definition, platform, gesture, issues);
             }
@@ -83,7 +108,7 @@ public sealed class ShortcutConventionValidator : IShortcutConventionValidator
         switch (platform)
         {
             case ShortcutPlatform.MacOS:
-                ValidateMacOS(gesture, Add);
+                ValidateMacOS(definition, gesture, Add);
                 break;
             case ShortcutPlatform.Windows:
                 ValidateWindows(gesture, Add);
@@ -100,6 +125,7 @@ public sealed class ShortcutConventionValidator : IShortcutConventionValidator
     }
 
     private static void ValidateMacOS(
+        ShortcutDefinition definition,
         ShortcutGesture gesture,
         Action<ShortcutConventionIssueKind, ShortcutConventionSeverity, string> add)
     {
@@ -116,7 +142,11 @@ public sealed class ShortcutConventionValidator : IShortcutConventionValidator
                 "Insert is absent from standard Mac keyboards.");
         }
 
-        if (gesture.Modifiers.HasFlag(ShortcutModifiers.Alt) && IsArrow(gesture.Key))
+        // Option(+Shift)+arrow moves (or extends the selection) by word or
+        // paragraph; with Command or Control added it is free.
+        if (gesture.Modifiers.HasFlag(ShortcutModifiers.Alt) &&
+            (gesture.Modifiers & ~(ShortcutModifiers.Alt | ShortcutModifiers.Shift)) == 0 &&
+            IsArrow(gesture.Key))
         {
             add(ShortcutConventionIssueKind.CommonApplicationCollision, ShortcutConventionSeverity.Error,
                 "Option plus an arrow is a standard macOS text-navigation combination.");
@@ -128,7 +158,7 @@ public sealed class ShortcutConventionValidator : IShortcutConventionValidator
                 "Option plus a letter or number may produce a special character on the active macOS keyboard layout.");
         }
 
-        if (gesture.Modifiers == ShortcutModifiers.Shift && IsArrow(gesture.Key))
+        if (definition.Scope is null && gesture.Modifiers == ShortcutModifiers.Shift && IsArrow(gesture.Key))
         {
             add(ShortcutConventionIssueKind.CommonApplicationCollision, ShortcutConventionSeverity.Warning,
                 "Shift plus an arrow is conventional text selection and must remain focus-scoped.");
@@ -140,20 +170,23 @@ public sealed class ShortcutConventionValidator : IShortcutConventionValidator
                 "Forward Delete commonly requires Fn+Delete on a Mac keyboard; verify the intended deletion semantics.");
         }
 
-        if (gesture.Modifiers == ShortcutModifiers.Command &&
-            gesture.Key.Kind == ShortcutKeyKind.Character &&
-            "QHMW".Contains(gesture.Key.Value, StringComparison.Ordinal))
+        if (MacOSReservedShortcuts.TryFind(gesture, out var reserved))
         {
-            add(ShortcutConventionIssueKind.CommonApplicationCollision, ShortcutConventionSeverity.Error,
-                "This Command shortcut has a conventional macOS application or window action.");
-        }
-
-        if (gesture.Modifiers == ShortcutModifiers.Command && gesture.Key.Value == "SPACE")
-        {
-            add(ShortcutConventionIssueKind.ReservedByOperatingSystem, ShortcutConventionSeverity.Error,
-                "Command+Space is normally reserved for Spotlight.");
+            if (reserved!.IsConventionalCommand)
+            {
+                add(ShortcutConventionIssueKind.CommonApplicationCollision, ShortcutConventionSeverity.Warning,
+                    $"macOS apps use this shortcut to {Lower(reserved.Action)}; bind it only to that command.");
+            }
+            else
+            {
+                add(ShortcutConventionIssueKind.ReservedByOperatingSystem, ShortcutConventionSeverity.Error,
+                    $"macOS uses this shortcut to {Lower(reserved.Action)}; choose another key for every platform.");
+            }
         }
     }
+
+    private static string Lower(string action) =>
+        action.Length == 0 ? action : char.ToLowerInvariant(action[0]) + action[1..];
 
     private static void ValidateWindows(
         ShortcutGesture gesture,

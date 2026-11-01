@@ -1,0 +1,45 @@
+{
+  "//": "Modifier and key labels. Each language has a 'text' table (Windows and Linux) with optional 'windows' and 'linux' additions, and a 'macOS' table. Missing entries fall back to English. Key names are ShortcutKey.Value (upper case). Add a language by adding its two-letter code (or a full culture name such as de-CH).",
+  "en": {
+    "text": {
+      "modifiers": { "Control": "Ctrl", "Alt": "Alt", "Shift": "Shift", "Command": "Command", "Super": "Super" },
+      "keys": {
+        "BACK": "Backspace", "BACKSPACE": "Backspace", "DELETE": "Delete", "DOWN": "Down", "END": "End",
+        "ENTER": "Enter", "RETURN": "Enter", "ESC": "Esc", "ESCAPE": "Esc", "HOME": "Home", "INSERT": "Insert",
+        "LEFT": "Left", "PAGEDOWN": "Page Down", "NEXT": "Page Down", "PAGEUP": "Page Up", "PRIOR": "Page Up",
+        "RIGHT": "Right", "SPACE": "Space", "TAB": "Tab", "UP": "Up",
+        "OEMPLUS": "Plus", "OEMMINUS": "Minus", "OEMCOMMA": ",", "OEMPERIOD": ".",
+        "ADD": "Num +", "NUMPADADD": "Num +", "SUBTRACT": "Num -", "NUMPADSUBTRACT": "Num -",
+        "MULTIPLY": "Num *", "DIVIDE": "Num /", "DECIMAL": "Num ."
+      }
+    },
+    "windows": {
+      "modifiers": { "Super": "Win" }
+    },
+    "macOS": {
+      "modifiers": { "Control": "⌃", "Alt": "⌥", "Shift": "⇧", "Command": "⌘", "Super": "◆" },
+      "keys": {
+        "BACK": "⌫", "BACKSPACE": "⌫", "DELETE": "⌦", "DOWN": "↓", "END": "↘", "ENTER": "↩", "RETURN": "↩",
+        "ESC": "Esc", "ESCAPE": "Esc", "HOME": "↖", "LEFT": "←", "PAGEDOWN": "⇟", "NEXT": "⇟", "PAGEUP": "⇞",
+        "PRIOR": "⇞", "RIGHT": "→", "SPACE": "Space", "TAB": "⇥", "UP": "↑",
+        "OEMPLUS": "+", "OEMMINUS": "-", "OEMCOMMA": ",", "OEMPERIOD": ".",
+        "ADD": "+", "NUMPADADD": "+", "SUBTRACT": "-", "NUMPADSUBTRACT": "-",
+        "MULTIPLY": "*", "DIVIDE": "/", "DECIMAL": "."
+      }
+    }
+  },
+  "de": {
+    "text": {
+      "modifiers": { "Control": "Strg", "Shift": "Umschalt" },
+      "keys": {
+        "BACK": "Rücktaste", "BACKSPACE": "Rücktaste", "DELETE": "Entf", "DOWN": "Nach-unten", "END": "Ende",
+        "ENTER": "Eingabe", "RETURN": "Eingabe", "HOME": "Pos1", "INSERT": "Einfg", "LEFT": "Nach-links",
+        "PAGEDOWN": "Bild ab", "NEXT": "Bild ab", "PAGEUP": "Bild auf", "PRIOR": "Bild auf",
+        "RIGHT": "Nach-rechts", "SPACE": "Leertaste", "UP": "Nach-oben"
+      }
+    },
+    "macOS": {
+      "keys": { "SPACE": "Leertaste" }
+    }
+  }
+}
