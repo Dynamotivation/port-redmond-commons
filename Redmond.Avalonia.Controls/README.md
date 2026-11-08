@@ -53,5 +53,5 @@ provides consistent chrome glyphs such as Settings on every target platform,
 including systems without Segoe Fluent Icons installed.
 
 This is intentionally a source project rather than a published package.
-See [`../SHARED-DEVELOPMENT.md`](../SHARED-DEVELOPMENT.md) for the submodule
+See the [Commons README](../README.md#application-integration) for the submodule
 layout and update workflow.
